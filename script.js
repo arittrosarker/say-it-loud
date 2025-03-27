@@ -1,12 +1,39 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, set, get, child, push } from "firebase/database";
 
-document.getElementById('share-thought-btn').addEventListener('click', () => {
-    document.getElementById('thought-modal').style.display = 'block';
-});
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCA8k3MG9FGgjLa4fkQ979G2hVQf9DNsYs",
+  authDomain: "say-it-loud-8e48f.firebaseapp.com",
+  databaseURL: "https://say-it-loud-8e48f-default-rtdb.firebaseio.com",
+  projectId: "say-it-loud-8e48f",
+  storageBucket: "say-it-loud-8e48f.firebasestorage.app",
+  messagingSenderId: "677195341918",
+  appId: "1:677195341918:web:ea837b45ccfc11f7f454cf",
+  measurementId: "G-N6KB82D5GD"
+};
 
-document.getElementById('cancel-btn').addEventListener('click', () => {
-    document.getElementById('thought-modal').style.display = 'none';
-});
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
+// Function to save thought to Firebase
+function saveThought(name, thought) {
+  const postData = {
+    name: name,
+    thought: thought,
+    hearts: 0,  // Initial hearts count
+    timestamp: Date.now() // Timestamp for sorting purposes
+  };
+
+  const newPostKey = push(ref(database, 'thoughts')).key;
+
+  // Write the new thought to the database
+  set(ref(database, 'thoughts/' + newPostKey), postData);
+}
+
+// Handle thought submission
 document.getElementById('submit-thought-btn').addEventListener('click', () => {
     const name = document.getElementById('name').value;
     const thought = document.getElementById('thought').value;
@@ -21,63 +48,87 @@ document.getElementById('submit-thought-btn').addEventListener('click', () => {
     }
 
     if (name && thought) {
-        const thoughtData = {
-            name: name,
-            thought: thought,
-            hearts: 0,
-            id: Date.now(),
-        };
+        // Save thought to Firebase
+        saveThought(name, thought);
 
-        // Save thought data in the browser (localStorage)
-        if (!localStorage.getItem('hasPosted')) {
-            let thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
-            thoughts.push(thoughtData);
-            localStorage.setItem('thoughts', JSON.stringify(thoughts));
-            localStorage.setItem('hasPosted', true);  // Prevent further posts
-        }
-
+        // Hide modal
         document.getElementById('thought-modal').style.display = 'none';
-        loadThoughts();  // Reload the feed
+
+        // Reload the feed
+        loadThoughts();
     }
 });
 
-// Load Thoughts from localStorage
+// Load thoughts from Firebase and display them
 function loadThoughts() {
-    const thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
     const feed = document.getElementById('feed');
     feed.innerHTML = '';  // Clear current feed
 
-    // Sort by hearts
-    thoughts.sort((a, b) => b.hearts - a.hearts);
+    const thoughtsRef = ref(database, 'thoughts'); // Reference to the 'thoughts' node
+    get(thoughtsRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const thoughts = snapshot.val();
+            const sortedThoughts = Object.keys(thoughts).map(key => ({
+                id: key,
+                ...thoughts[key]
+            }));
 
-    thoughts.forEach(thought => {
-        const thoughtBox = document.createElement('div');
-        thoughtBox.classList.add('thought-box');
-        thoughtBox.innerHTML = `
-            <h3>${thought.name}</h3>
-            <p>${thought.thought}</p>
-            <span class="heart" data-id="${thought.id}">❤️</span>
-            <span class="hearts-count">${thought.hearts}</span>
-        `;
-        feed.appendChild(thoughtBox);
+            // Sort by hearts (most popular first)
+            sortedThoughts.sort((a, b) => b.hearts - a.hearts);
+
+            // Render thoughts in the feed
+            sortedThoughts.forEach(thought => {
+                const thoughtBox = document.createElement('div');
+                thoughtBox.classList.add('thought-box');
+                thoughtBox.innerHTML = `
+                    <h3>${thought.name}</h3>
+                    <p>${thought.thought}</p>
+                    <span class="heart" data-id="${thought.id}">❤️</span>
+                    <span class="hearts-count">${thought.hearts}</span>
+                `;
+                feed.appendChild(thoughtBox);
+            });
+        } else {
+            console.log("No data available");
+        }
+    }).catch((error) => {
+        console.error(error);
     });
 }
 
-// Handle heart button clicks
+// Handle heart button click
 document.getElementById('feed').addEventListener('click', (e) => {
     if (e.target.classList.contains('heart')) {
         const postId = e.target.getAttribute('data-id');
-        const thoughts = JSON.parse(localStorage.getItem('thoughts'));
-        const thought = thoughts.find(t => t.id == postId);
+        const thoughtRef = ref(database, 'thoughts/' + postId);
 
-        if (!thought.heartsGiven) {
-            thought.hearts++;
-            thought.heartsGiven = true; // Prevent multiple hearts
-            localStorage.setItem('thoughts', JSON.stringify(thoughts));
-            loadThoughts(); // Reload the feed
-        }
+        // Increment heart count
+        get(thoughtRef).then((snapshot) => {
+            const thought = snapshot.val();
+            if (!thought.heartsGiven) {
+                const updatedHearts = thought.hearts + 1;
+                set(thoughtRef, {
+                    ...thought,
+                    hearts: updatedHearts,
+                    heartsGiven: true
+                });
+
+                // Reload thoughts to reflect the updated hearts count
+                loadThoughts();
+            }
+        });
     }
 });
 
-// Initialize the feed
+// Show modal when "Share Your Thought" button is clicked
+document.getElementById('share-thought-btn').addEventListener('click', () => {
+    document.getElementById('thought-modal').style.display = 'block';
+});
+
+// Close modal when "Cancel" button is clicked
+document.getElementById('cancel-btn').addEventListener('click', () => {
+    document.getElementById('thought-modal').style.display = 'none';
+});
+
+// Initialize feed when page loads
 window.onload = loadThoughts;
