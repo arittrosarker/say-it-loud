@@ -1,1 +1,71 @@
 
+body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #222;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+}
+
+button {
+    background-color: gray;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #444;
+}
+
+#thought-modal {
+    background-color: #333;
+    padding: 20px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+textarea, input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #444;
+    background-color: #222;
+    color: white;
+}
+
+#feed {
+    padding: 20px;
+}
+
+.thought-box {
+    background-color: #444;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.heart {
+    color: red;
+    cursor: pointer;
+}
+
+button#cancel-btn {
+    background-color: red;
+}
