@@ -1,1 +1,32 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say It Loud</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Say It Loud</h1>
+        <button id="share-thought-btn">Share Your Thought</button>
+    </header>
+
+    <!-- Feed Section -->
+    <section id="feed">
+        <!-- Thoughts will be dynamically added here -->
+    </section>
+
+    <!-- Thought Submission Modal -->
+    <div id="thought-modal" style="display: none;">
+        <h2>Write Your Thought</h2>
+        <input type="text" id="name" placeholder="Your Name">
+        <textarea id="thought" placeholder="Your Thought (Limit 2-3 lines)" rows="4"></textarea>
+        <button id="submit-thought-btn">Submit</button>
+        <button id="cancel-btn">Cancel</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
