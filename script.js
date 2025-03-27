@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, child, push } from "firebase/database";
+import { getDatabase, ref, set, get, push } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,20 +18,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Function to save thought to Firebase
-function saveThought(name, thought) {
-  const postData = {
-    name: name,
-    thought: thought,
-    hearts: 0,  // Initial hearts count
-    timestamp: Date.now() // Timestamp for sorting purposes
-  };
+// Show modal when "Share Your Thought" button is clicked
+document.getElementById('share-thought-btn').addEventListener('click', () => {
+    document.getElementById('thought-modal').style.display = 'block';
+});
 
-  const newPostKey = push(ref(database, 'thoughts')).key;
-
-  // Write the new thought to the database
-  set(ref(database, 'thoughts/' + newPostKey), postData);
-}
+// Close modal when "Cancel" button is clicked
+document.getElementById('cancel-btn').addEventListener('click', () => {
+    document.getElementById('thought-modal').style.display = 'none';
+});
 
 // Handle thought submission
 document.getElementById('submit-thought-btn').addEventListener('click', () => {
@@ -58,6 +53,21 @@ document.getElementById('submit-thought-btn').addEventListener('click', () => {
         loadThoughts();
     }
 });
+
+// Function to save thought to Firebase
+function saveThought(name, thought) {
+    const postData = {
+        name: name,
+        thought: thought,
+        hearts: 0,  // Initial hearts count
+        timestamp: Date.now() // Timestamp for sorting purposes
+    };
+
+    const newPostKey = push(ref(database, 'thoughts')).key;
+
+    // Write the new thought to the database
+    set(ref(database, 'thoughts/' + newPostKey), postData);
+}
 
 // Load thoughts from Firebase and display them
 function loadThoughts() {
@@ -118,16 +128,6 @@ document.getElementById('feed').addEventListener('click', (e) => {
             }
         });
     }
-});
-
-// Show modal when "Share Your Thought" button is clicked
-document.getElementById('share-thought-btn').addEventListener('click', () => {
-    document.getElementById('thought-modal').style.display = 'block';
-});
-
-// Close modal when "Cancel" button is clicked
-document.getElementById('cancel-btn').addEventListener('click', () => {
-    document.getElementById('thought-modal').style.display = 'none';
 });
 
 // Initialize feed when page loads
